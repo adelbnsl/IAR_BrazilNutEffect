@@ -1,0 +1,21 @@
+# Environnement virtuel Python
+.venv/
+venv/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+
+# Fichiers temporaires
+*.log
+*.tmp
+
+# Paramètres locaux de VS Code
+.vscode/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Cache des tests
+.pytest_cache/
