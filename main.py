@@ -3,46 +3,98 @@ from src.robot import Robot
 from src.simulation import Simulation
 import matplotlib.pyplot as plt
 import math
+from matplotlib.animation import FuncAnimation
+
 
 def afficher_simulation(simulation):
-    """ 
-    Affiche l'arène et les positions des robots.
-    
-    Groupe A : Bleu (rayon virtuel 0.10 m)
-    Groupe B : Orange (rayon virtuel 0.15 m)
     """
+    Affiche et anime les robots dans l'arène.
+
+    À chaque image :
+    - La simulation avance d'un pas.
+    - Les positions et orientations sont actualisées.
+    - Le temps simulé est affiché.
+    """
+
     fig, ax = plt.subplots(figsize=(7, 7))
-    
-    for i, robot in enumerate(simulation.robots) :
-        # Choisir la couleur selon le groupe.
-        couleur = "blue" if robot.rayon_virtuel == 0.10 else "orange"
-        
-        # Dessiner le robot avec son rayon physique.
-        cercle = plt.Circle((robot.x, robot.y), robot.rayon_physique, color = couleur, alpha = 0.8)
-        ax.add_patch(cercle)
-        
-        # Afficher la direction du robot.
-        longeur_fleche = 0.08
-        dx = longeur_fleche * math.cos(robot.theta)
-        dy = longeur_fleche * math.sin(robot.theta)
-        ax.arrow(robot.x, robot.y, dx, dy, head_width=0.025, head_length=0.025, fc="black", ec="black", length_includes_head=True)
-        
-        # Afficher le numéro du robot. 
-        ax.text(robot.x, robot.y + 0.07, str(i + 1), ha="center", fontsize=8)
-    
-    # Dimensions de l'arène.
-    ax.set_xlim(0, simulation.largeur)
-    ax.set_ylim(0, simulation.hauteur)
-    
-    # Respecter les proportions physiques 
-    ax.set_aspect("equal")
-    
-    ax.set_xlabel("Position x (m)")
-    ax.set_ylabel("Position y (m)")
-    ax.set_title("Brazil Nut Effect - 20 robots")
-    
-    ax.grid(True, alpha=0.3)
+
+    def mettre_a_jour(frame):
+
+        # Avancer la simulation d'un pas
+        simulation.effectuer_pas()
+
+        # Effacer l'affichage précédent
+        ax.clear()
+
+        # Dessiner les 20 robots
+        for i, robot in enumerate(simulation.robots):
+
+            couleur = (
+                "blue" if robot.rayon_virtuel == 0.10
+                else "orange"
+            )
+
+            # Corps physique du robot
+            cercle = plt.Circle(
+                (robot.x, robot.y),
+                robot.rayon_physique,
+                color=couleur,
+                alpha=0.8
+            )
+
+            ax.add_patch(cercle)
+
+            # Orientation du robot
+            longueur_fleche = 0.08
+
+            dx = longueur_fleche * math.cos(robot.theta)
+            dy = longueur_fleche * math.sin(robot.theta)
+
+            ax.arrow(
+                robot.x,
+                robot.y,
+                dx,
+                dy,
+                head_width=0.025,
+                head_length=0.025,
+                fc="black",
+                ec="black",
+                length_includes_head=True
+            )
+
+            # Numéro du robot
+            ax.text(
+                robot.x,
+                robot.y + 0.07,
+                str(i + 1),
+                ha="center",
+                fontsize=8
+            )
+
+        # Configuration de l'arène
+        ax.set_xlim(0, simulation.largeur)
+        ax.set_ylim(0, simulation.hauteur)
+        ax.set_aspect("equal")
+
+        ax.set_xlabel("Position x (m)")
+        ax.set_ylabel("Position y (m)")
+
+        ax.set_title(
+            f"Brazil Nut Effect - Temps : {simulation.temps:.1f} s"
+        )
+
+        ax.grid(True, alpha=0.3)
+
+    # Animation : mise à jour toutes les 100 ms
+    animation = FuncAnimation(
+        fig,
+        mettre_a_jour,
+        interval=100,
+        cache_frame_data=False
+    )
+
     plt.show()
+
     
 def main():
     """
@@ -89,6 +141,8 @@ def main():
     )
 
     simulation.nb_iterations_collisions = 20
+    
+    
 
     print("=== Brazil Nut Effect ===")
     print("Nombre de robots :", len(simulation.robots))

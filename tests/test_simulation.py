@@ -308,3 +308,222 @@ def test_simulation_20_robots():
 
     assert sum(r.rayon_virtuel == 0.10 for r in robots) == 10
     assert sum(r.rayon_virtuel == 0.15 for r in robots) == 10
+
+def test_direction_lumiere():
+    """ 
+    Vérifie la direction de la lumière centrale depuis 4 positions différentes.
+    """
+    robot = Robot(0.25, 1.25, 0.0, 0.10)
+    simulation = creer_simulation([robot])
+    
+    # Lumière à droite.
+    assert simulation.calculer_direction_lumiere(robot) == pytest.approx(0.0)
+    
+    # Lumière à gauche.
+    robot.x = 2.25
+    robot.y = 1.25
+    
+    assert simulation.calculer_direction_lumiere(robot) == pytest.approx(math.pi)
+    
+    # Lumière en haut.
+    robot.x = 1.25
+    robot.y = 0.25
+    
+    assert simulation.calculer_direction_lumiere(robot) == pytest.approx(math.pi / 2)
+    
+    # Lumière en bas.
+    robot.x = 1.25
+    robot.y = 2.25
+    
+    assert simulation.calculer_direction_lumiere(robot) == pytest.approx(-math.pi / 2)
+    
+
+def test_ecart_lumiere():
+    """ 
+    Vérifie le calcul de l'écart angulaire entre l'orientation du robot et la lumière.
+    """
+    robot = Robot(1.25, 0.25, 0.0, 0.10)
+    simulation = creer_simulation([robot])
+    
+    # Cas 1 : lumière à gauche (+90°).
+    assert simulation.calculer_ecart_lumiere(robot) == pytest.approx(math.pi / 2)
+    
+    # Cas 2 : lumière à droite (-90°).
+    robot.x = 0.25
+    robot.y = 1.25
+    robot.theta = math.pi / 2
+    
+    assert simulation.calculer_ecart_lumiere(robot) == pytest.approx(-math.pi / 2)
+    
+    # Cas 3 : robot déjà orienté vers la lumière.
+    robot.theta = 0.0
+    assert simulation.calculer_ecart_lumiere(robot) == pytest.approx(0.0)
+    
+    # Cas 4 : Normalisation de l'angle. Lumière à +170°, robot orienté à -170°.
+    angle_lumiere = math.radians(170)
+    robot.x = simulation.lumiere_x - math.cos(angle_lumiere)
+    robot.y = simulation.lumiere_y - math.sin(angle_lumiere)
+    robot.theta = math.radians(-170)
+    
+    assert simulation.calculer_ecart_lumiere(robot) == pytest.approx(math.radians(-20))
+    
+
+def test_distance_lumiere():
+    """ 
+    Vérifie le calcul de la distance entre un robot et la lumière centrale.
+    """
+    robot = Robot(0.25, 1.25, 0.0, 0.10)
+    simulation = creer_simulation([robot])
+    
+    # Cas 1 : robot à 1m de la lumière.
+    assert simulation.calculer_distance_lumiere(robot) == pytest.approx(1.0)
+    
+    # Cas 2 : robot exactement au centre.
+    robot.x = 1.25
+    robot.y = 1.25
+    
+    assert simulation.calculer_distance_lumiere(robot) == pytest.approx(0.0)
+    
+    # Cas 3 : robot en diagonale.
+    robot.x = 0.25
+    robot.y = 0.25
+    assert simulation.calculer_distance_lumiere(robot) == pytest.approx(math.sqrt(2))
+    
+
+def test_distance_robots():
+    """ 
+    Vérifie le calcul de la distance entre 2 robots
+    """
+    robot1 = Robot(0.5, 1.0, 0.0, 0.10)
+    robot2 = Robot(0.8, 1.4, 0.0, 0.15)
+    simulation = creer_simulation([robot1, robot2])
+    
+    # Cas 1 : distance en diagonale.
+    assert simulation.calculer_distance_robots(robot1, robot2) == pytest.approx(0.5)
+    
+    # Cas 2 : robots au même endroit.
+    robot2.x = 0.5
+    robot2.y = 1.0
+    
+    assert simulation.calculer_distance_robots(robot1, robot2) == pytest.approx(0.0)
+    
+    # Cas 3 : distance horizontale.
+    robot2.x = 1.5
+    robot2.y = 1.0
+    
+    assert simulation.calculer_distance_robots(robot1, robot2) == pytest.approx(1.0)
+
+
+def test_detecter_voisins():
+    """ 
+    Vérifie que seuls les robots situés dans la zone de détection sont retournés.
+    """
+    robot_a = Robot(0.5, 0.5, 0.0, 0.10)
+    robot_b = Robot(0.7, 0.5, 0.0, 0.10)
+    robot_c = Robot(0.5, 0.9, 0.0, 0.15)
+    robot_d = Robot(1.3, 0.5, 0.0, 0.15)
+    simulation = creer_simulation([robot_a, robot_b, robot_c, robot_d])
+    
+    voisins = simulation.detecter_voisins(robot_a, 0.5)
+    
+    # Les deux robots proches sont détectés.
+    assert robot_b in voisins
+    assert robot_c in voisins
+    
+    # Le robot éloigné n'est pas détecté.
+    assert robot_d not in voisins
+    
+    # Un robot ne se détecte pas lui-même.
+    assert robot_a not in voisins
+    
+    # Exactement 2 voisins.
+    assert len(voisins) == 2
+
+def test_chevauchement_virtuel():
+    """ 
+    Vérifie que le chevauchement virtuel dépend du rayon du robot qui effectue l'observation.
+    """
+    
+    robot_a = Robot(0.5, 0.5, 0.0, 0.10)
+    robot_b = Robot(0.68, 0.5, 0.0, 0.15)
+
+    simulation = creer_simulation([robot_a, robot_b])
+    
+    # Cas 1 : du point de vue du robot A.
+    chevauchement_a = simulation.calculer_chevauchement_virtuel(robot_a, robot_b)
+    
+    assert chevauchement_a == pytest.approx(0.02)
+    
+    # Cas 2 : du point de vue du robot B.
+    chevauchement_b = simulation.calculer_chevauchement_virtuel(robot_b, robot_a)
+    
+    assert chevauchement_b == pytest.approx(0.12)
+    
+    # Cas 3 : aucun chevauchement virtuel
+    robot_b.x = 1.0
+    
+    assert simulation.calculer_chevauchement_virtuel(robot_a, robot_b) == pytest.approx(0.0)
+    
+def test_direction_repulsion():
+    """ 
+    Vérifie que le vecteur de répulsion pointe dans la direction opposée du voisin
+    """
+    robot_a = Robot(0.5, 0.5, 0.0, 0.10)
+    robot_b = Robot(0.8, 0.5, 0.0, 0.15)
+
+    simulation = creer_simulation([robot_a, robot_b])
+    
+    # Cas 1 : voisin à droite -> répulsion à gauche.
+    ux, uy = simulation.calculer_direction_repulsion(robot_a, robot_b)
+    
+    assert ux == pytest.approx(-1.0)
+    assert uy == pytest.approx(0.0)
+    
+    # Cas 2 : voisin à gauche -> répulsion à droite.
+    robot_b.x = 0.2
+    ux, uy = simulation.calculer_direction_repulsion(robot_a, robot_b)
+    
+    assert ux == pytest.approx(1.0)
+    assert uy == pytest.approx(0.0)
+    
+    # Cas 3 : voisin au-dessus -> répulsion vers le bas.
+    robot_b.x = 0.5
+    robot_b.y = 0.8
+    ux, uy = simulation.calculer_direction_repulsion(robot_a, robot_b)
+    
+    assert ux == pytest.approx(0.0)
+    assert uy == pytest.approx(-1.0)
+    
+    # Cas 4 : robot exactement au même endroit.
+    robot_b.x = 0.5
+    robot_b.y = 0.5
+    ux, uy = simulation.calculer_direction_repulsion(robot_a, robot_b)
+    
+    assert ux == pytest.approx(0.0)
+    assert uy == pytest.approx(0.0)
+
+def test_repulsion_totale():
+    """ 
+    Vérifie que les contributions de répulsion de plusieurs voisins s'additionnent.
+    """
+    robot_a = Robot(1.0, 1.0, 0.0, 0.10)
+    robot_b = Robot(1.15, 1.0, 0.0, 0.15)
+    robot_c = Robot(1.0, 1.15, 0.0, 0.15)
+
+    simulation = creer_simulation([robot_a, robot_b, robot_c])
+    
+    # Cas 1 : deux voisins exercent une répulsion.
+    rx, ry = simulation.calculer_repulsion_totale(robot_a)
+    
+    assert rx == pytest.approx(-0.05)
+    assert ry == pytest.approx(-0.05)
+    
+    # Cas 2 : les voisins sont trop éloignés.
+    robot_b.x = 2.0
+    robot_c.y = 2.0
+    rx, ry = simulation.calculer_repulsion_totale(robot_a)
+    
+    assert rx == pytest.approx(0.0)
+    assert ry == pytest.approx(0.0)
+    
+    
