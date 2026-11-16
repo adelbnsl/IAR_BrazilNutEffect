@@ -32,6 +32,9 @@ class Simulation:
         
         # Chevauchement maximal toléré entre deux robots (en mètres).
         self.tolerance_collision = 0.0001
+        
+        # Contrôleur autonome associé à la simulation.
+        self.controleur = None
     
     def effectuer_pas(self):
         """ 
@@ -42,6 +45,11 @@ class Simulation:
         2. Vérifie que chaque robot reste dans l'arène.
         3. Met à jour le temps écoulé dans la simulation.
         """
+        
+        # Mettre à jour les commandes des robots si un contrôleur autonome est associé.
+        if self.controleur is not None :
+            for robot in self.robots :
+                self.controleur.appliquer_vitesses_roues(robot)
         # Déplacer tous les robots.
         for robot in self.robots :
             robot.deplacer(self.dt)
@@ -318,3 +326,50 @@ class Simulation:
                 chevauchement_max = max(chevauchement_max, chevauchement)
                 
         return chevauchement_max
+    
+    def calculer_distance_centre(self, robot):
+        """ 
+        Calcule la distance entre un robot et le centre de l'arène.
+        
+        Paramètre :
+        robot : robot dont on souhaite mesurer la distance.
+        
+        Retourne :
+        Distance euclidienne au centre, en mètres.
+        """
+        # Coordonnées du centre de l'arène.
+        centre_x = self.largeur / 2 
+        centre_y = self.hauteur / 2
+        
+        # Différence de position entre le robot et le centre.
+        dx = robot.x - centre_x
+        dy = robot.y - centre_y
+        
+        # Calcul de la distance euclidienne.
+        return math.sqrt(dx**2 + dy**2)
+    
+    def calculer_distance_moyenne_population(self, rayon_virtuel):
+        """
+        Calcule la distance moyenne au centre de l'arène pour une population de robots.
+        
+        Paramètres :
+        rayon_virtuel : rayon virtuel permettant d'identifier la population.
+        
+        Retourne :
+        Distance moyenne au centre en mètres. Retourne 0.0 si aucun robot ne correspond.
+        """
+        # Sélectionner les robots appartenant à la population.
+        population = [robot for robot in self.robots if math.isclose(robot.rayon_virtuel, rayon_virtuel)]
+        
+        # Eviter uen division par 0 si la population est vide.
+        if not population :
+            return 0.0
+        
+        # Calculer la somme des distances au centre.
+        somme_distances = 0.0
+        for robot in population :
+            somme_distances += self.calculer_distance_centre(robot)
+        
+        # Retourne la distance moyenne.
+        return somme_distances / len(population)
+        

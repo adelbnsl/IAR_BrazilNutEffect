@@ -4,6 +4,7 @@ import pytest
 
 from src.robot import Robot
 from src.simulation import Simulation
+from src.controller import Controleur
 
 
 def creer_simulation(robots, dt=0.1):
@@ -526,4 +527,77 @@ def test_repulsion_totale():
     assert rx == pytest.approx(0.0)
     assert ry == pytest.approx(0.0)
     
+
+def test_effectuer_pas_avec_controleur(monkeypatch):
+    """ 
+    Vérifie que la simulation utilise le contrôleur pour mettre à jour les vitesses et déplacer un robot.
+    """
+    # Créer un robot initialement immobile.
+    robot = Robot(1.0, 1.0, 0.0, 0.10)
+
+    # Créer la simulation et le contrôleur.
+    simulation = Simulation(2.5, 2.5, [robot], 0.1)
+    controleur = Controleur(simulation)
+
+    # Associer le contrôleur à la simulation.
+    simulation.controleur = controleur
+
+    # Imposer des vitesses identiques aux deux roues.
+    monkeypatch.setattr(controleur, "calculer_vitesses_roues", lambda robot: (0.05, 0.05))
     
+    # Effectuer un pas de simulation.
+    simulation.effectuer_pas()
+    
+    assert robot.vitesse_gauche == pytest.approx(0.05)
+    assert robot.vitesse_droite == pytest.approx(0.05)
+    
+    assert robot.x == pytest.approx(1.005)
+    assert robot.y == pytest.approx(1.0)
+    
+    assert robot.theta == pytest.approx(0.0)
+    
+    assert simulation.temps == pytest.approx(0.1)
+
+def test_calculer_distance_centre():
+    """ 
+    Vérifie que la distance entre un robot et le centre de l'arène est correctement calculée.
+    """
+    
+    # Créer un robot situé à 0.5 m du centre.
+    robot = Robot(1.55, 1.65, 0.0, 0.10)
+    
+    # Créer une simulation de 2.5m sur 2.5m.
+    simulation = Simulation(2.5, 2.5, [robot], 0.1)
+    
+    # Calculer la distance du robot au centre.
+    distance = simulation.calculer_distance_centre(robot)
+    
+    # Vérifier que la distance obtenue est de 0.5m.
+    assert distance == pytest.approx(0.5)
+
+
+def test_calculer_distance_moyenne_population(): 
+    """
+    Vérifie que la distance moyenne au centre est correctement calculée pour chaque population.
+    """
+     # Créer deux robots de la population A.
+    robot1 = Robot(1.25, 1.25, 0.0, 0.10)
+    robot2 = Robot(1.55, 1.65, 0.0, 0.10)
+
+    # Créer un robot de la population B.
+    robot3 = Robot(1.25, 1.65, 0.0, 0.15)
+    
+    # Créer la simulation.
+    simulation = Simulation(2.5,2.5,[robot1, robot2, robot3], 0.1) 
+    
+    # Calculer les distances moyennes des populations.
+    distance_A = simulation.calculer_distance_moyenne_population(0.10)
+    distance_B = simulation.calculer_distance_moyenne_population(0.15)
+    
+    assert distance_A == pytest.approx(0.25)
+    assert distance_B == pytest.approx(0.40)
+    
+    # Vérifier le cas d'une population inexistante.
+    distance_absente = simulation.calculer_distance_moyenne_population(0.20)
+    
+    assert distance_absente == pytest.approx(0.0)
