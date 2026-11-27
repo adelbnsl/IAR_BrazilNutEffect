@@ -1,0 +1,4 @@
+{
+  "_commentaire": "Bruit à 0.6 (valeur de l'article). Attention : ici le bruit est retiré à chaque pas de 0.1 s, donc il se moyenne et son effet reste faible (l'article le maintient pendant un cycle de 5 s).",
+  "controleur": {"poids_aleatoire": 0.6}
+}

@@ -372,4 +372,53 @@ class Simulation:
         
         # Retourne la distance moyenne.
         return somme_distances / len(population)
-        
+
+    def calculer_erreur_segregation(self):
+        """
+        Calcule l'erreur de ségrégation (SE) définie dans l'article (équation 5).
+
+        Une paire ordonnée (i, j) de robots de groupes différents compte comme une erreur
+        si le robot du groupe au plus petit rayon n'est pas strictement plus proche
+        de la lumière que celui du groupe au plus grand rayon.
+        La somme est normalisée par le nombre de paires possibles : n^2 - somme(n_k^2).
+
+        Retourne :
+        float dans [0, 1]. 0 : ségrégation parfaite. 0.5 : placement aléatoire.
+        1 : configuration "Brazil nut inversée". 0.0 s'il n'y a qu'un seul groupe.
+
+        Lève ValueError si un robot n'a pas de groupe.
+        """
+        if any(robot.groupe is None for robot in self.robots):
+            raise ValueError("Tous les robots doivent avoir un groupe pour calculer l'erreur de ségrégation.")
+
+        # Distance de chaque robot à la lumière.
+        distances = [self.calculer_distance_lumiere(robot) for robot in self.robots]
+
+        # Rayon virtuel associé à chaque groupe (pour savoir quel groupe est le "grand").
+        rayons = {}
+        effectifs = {}
+        for robot in self.robots:
+            rayons[robot.groupe] = robot.rayon_virtuel
+            effectifs[robot.groupe] = effectifs.get(robot.groupe, 0) + 1
+
+        n = len(self.robots)
+        nb_paires = n * n - sum(effectif ** 2 for effectif in effectifs.values())
+        if nb_paires == 0:
+            return 0.0
+
+        erreurs = 0
+        for i in range(n):
+            for j in range(n):
+                ri = self.robots[i].rayon_virtuel
+                rj = self.robots[j].rayon_virtuel
+                if self.robots[i].groupe == self.robots[j].groupe:
+                    continue
+                # Avec b = 1 les deux groupes ont le même rayon : on ordonne alors par numéro de groupe.
+                if ri == rj:
+                    ri, rj = self.robots[i].groupe, self.robots[j].groupe
+                if ri < rj and distances[i] >= distances[j]:
+                    erreurs += 1
+                elif ri > rj and distances[i] <= distances[j]:
+                    erreurs += 1
+
+        return erreurs / nb_paires

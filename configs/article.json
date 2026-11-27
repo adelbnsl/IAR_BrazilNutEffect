@@ -1,0 +1,4 @@
+{
+  "_commentaire": "Contrôleur fidèle à l'article (cycle de 5 s, bruit 0.6 maintenu, répulsion k=0.2 plafonnée à 6.4, vitesse proportionnelle). Équivalent à --set controleur.mode=article.",
+  "controleur": {"mode": "article"}
+}

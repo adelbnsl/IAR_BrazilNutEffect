@@ -1,0 +1,62 @@
+{
+  "arene": {
+    "cote": 2.5
+  },
+  "robot": {
+    "rayon_physique": 0.035,
+    "distance_roues": 0.053
+  },
+  "controleur": {
+    "mode": "article",
+    "poids_attraction": 1.0,
+    "poids_repulsion": 10.0,
+    "poids_aleatoire": 0.1,
+    "kp_rotation": 2.0,
+    "vitesse_angulaire_max": 2.0,
+    "vitesse_lineaire": 0.05
+  },
+  "article": {
+    "poids_attraction": 1.0,
+    "poids_aleatoire": 0.6,
+    "k_repulsion": 0.2,
+    "plafond_repulsion": 6.4,
+    "vitesse_max": 0.128,
+    "duree_cycle": 5.0,
+    "duree_scan": 2.4,
+    "duree_rotation": 1.3
+  },
+  "simulation": {
+    "dt": 0.1,
+    "nb_iterations_collisions": 20,
+    "tolerance_collision": 0.0001
+  },
+  "groupes": {
+    "n_robots": 20,
+    "rayon_base": 0.08,
+    "effectifs": null
+  },
+  "placement": {
+    "pas_grille": 0.2,
+    "taille_grille": 6
+  },
+  "experience": {
+    "valeurs_b": [
+      1,
+      1.05,
+      1.1,
+      1.15,
+      1.25,
+      1.5,
+      2
+    ],
+    "nb_essais": 20,
+    "duree": 1200.0,
+    "periode_mesure": 10.0,
+    "graine": 0
+  },
+  "visualisation": {
+    "b": 3.0,
+    "intervalle_ms": 100,
+    "pas_par_image": 1
+  }
+}

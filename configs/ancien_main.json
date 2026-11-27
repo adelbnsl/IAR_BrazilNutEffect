@@ -1,0 +1,5 @@
+{
+  "_commentaire": "Reproduit l'ancien main.py : 10 robots de rayon 0.10 m et 10 robots de rayon 0.15 m (b = 1.5).",
+  "groupes": {"n_robots": 20, "rayon_base": 0.10, "effectifs": [10, 10]},
+  "visualisation": {"b": 1.5}
+}

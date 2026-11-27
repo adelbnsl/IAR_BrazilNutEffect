@@ -10,7 +10,7 @@ class Robot :
         - Une vitesse pour chacune de ses deux roues.
     """
     
-    def __init__(self, x, y, theta, rayon_virtuel):
+    def __init__(self, x, y, theta, rayon_virtuel, groupe=None):
         # Position initiale du robots (en mètres).
         self.x = x
         self.y = y
@@ -20,6 +20,10 @@ class Robot :
         
         # Rayon virtuel du robot (en mètres).
         self.rayon_virtuel = rayon_virtuel
+        
+        # Groupe d'appartenance (1, 2, ...). Sert uniquement à mesurer la ségrégation :
+        # le contrôleur ne l'utilise pas (les robots sont anonymes).
+        self.groupe = groupe
         
         # Rayon physique du robot (en mètres). Utilisé pour les collisions avec les murs et les autres robots.
         self.rayon_physique = 0.035
